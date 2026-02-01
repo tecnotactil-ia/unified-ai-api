@@ -282,7 +282,7 @@ DEEPSEEK_API_KEY=$DEEPSEEK_API_KEY
 ADMIN_API_KEY=$ADMIN_API_KEY
 EOF
 
-# 10. Configurar Nginx
+# 10. Configurar Nginx (SIN SSL temporal)
 log_info "7️⃣ Configurando Nginx..."
 apt-get install -y nginx
 systemctl enable nginx
@@ -292,43 +292,44 @@ cat > /etc/nginx/sites-available/ai-gateway << 'NGINXEOF'
 server {
     server_name bak.tecnotactil.com;
     listen 80;
-    return 301 https://\$host\$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name bak.tecnotactil.com;
-
-    ssl_certificate /etc/letsencrypt/live/bak.tecnotactil.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/bak.tecnotactil.com/privkey.pem;
-    ssl_session_timeout 1d;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    add_header Strict-Transport-Security "max-age=63072000" always;
+    listen [::]:80;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
         proxy_read_timeout 300s;
     }
 }
 NGINXEOF
 
 ln -sf /etc/nginx/sites-available/ai-gateway /etc/nginx/sites-enabled/
-nginx -t
-systemctl reload nginx
+nginx -t && systemctl reload nginx
 
-# 11. Instalar Certbot SSL
-log_info "8️⃣ Configurando SSL..."
-apt-get install -y snapd
-snap install --classic certbot
-ln -sf /snap/bin/certbot /usr/bin/certbot
+# 11. === SSL - HACER MANUALMENTE DESPUÉS ===
+log_warn "8️⃣ SSL - HACER MANUALMENTE DESPUÉS DE LA INSTALACIÓN"
+log_warn ""
+log_warn "   Una vez que el DNS de bak.tecnotactil.com apunte a este servidor:"
+log_warn ""
+log_warn "   1. Obtener certificado SSL:"
+log_warn "      certbot --nginx -d bak.tecnotactil.com --non-interactive --agree-tos -m tu@email.com"
+log_warn ""
+log_warn "   2. O si prefieres manual:"
+log_warn "      certbot certonly --webroot -w /var/www/html -d bak.tecnotactil.com"
+log_warn ""
+log_warn "   3. Verificar que los certificados existen:"
+log_warn "      ls -la /etc/letsencrypt/live/bak.tecnotactil.com/"
+log_warn ""
+log_warn "   4. El script nginx ya tiene la configuración correcta para HTTPS"
+log_warn "      solo que está comentada temporalmente"
+log_warn ""
+log_warn "=============================================="
 
 # 12. Crear servicio systemd
 log_info "9️⃣ Creando servicio systemd..."
