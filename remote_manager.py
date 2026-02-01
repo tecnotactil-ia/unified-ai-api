@@ -7,6 +7,7 @@ Uso: python remote_manager.py "comando"
 import os
 import requests
 import sys
+import json
 
 # Configuración
 VPS_URL = "https://bak.tecnotactil.com"

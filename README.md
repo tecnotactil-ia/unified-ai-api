@@ -10,36 +10,48 @@ Unified AI API Gateway compatible con OpenAI API que combina modelos locales (Ol
 - 🔐 Gestión de API keys
 - 📊 Sistema de estadísticas
 
+## Arquitectura
+
+```
+                    ┌─────────────────────┐
+                    │   bak.tecnotactil.com │
+                    │     (Nginx + SSL)     │
+                    └──────────┬────────────┘
+                               │
+              ┌────────────────┴────────────────┐
+              │                                  │
+     ┌────────▼────────┐               ┌────────▼────────┐
+     │   Ollama        │               │   DeepSeek      │
+     │   Qwen 2.5 7B   │               │   (Fallback)    │
+     └─────────────────┘               └─────────────────┘
+```
+
+## Endpoints
+
+| Endpoint | Descripción |
+|----------|-------------|
+| `POST /v1/chat/completions` | Chat API (OpenAI compatible) |
+| `GET /v1/models` | Listar modelos |
+| `GET /health` | Health check |
+| `POST /api/manager` | Gestión remota |
+
 ## Instalación
 
 ```bash
-# Clonar el repositorio
 git clone https://github.com/tecnotactil-ia/unified-ai-api.git
 cd unified-ai-api
-
-# Hacer ejecutable el script
 chmod +x install-ai-gateway.sh
-
-# Ejecutar instalación
 ./install-ai-gateway.sh
 ```
 
 ## Configuración
 
-1. Copiar `.env.example` a `.env`:
-   ```bash
-   cp .env.example .env
-   ```
+```bash
+cp .env.example .env
+# Editar .env con tus API keys
+```
 
-2. Editar `.env` con tus credenciales:
-   - `DEEPSEEK_API_KEY`: Tu API key de DeepSeek
-   - `ADMIN_API_KEY`: Key de administración
-
-3. Configurar Nginx con SSL
-
-## Uso
-
-### Endpoint principal (OpenAI compatible)
+## Uso - Chat API
 
 ```bash
 curl https://tu-dominio/v1/chat/completions \
@@ -51,15 +63,7 @@ curl https://tu-dominio/v1/chat/completions \
   }'
 ```
 
-### Ver modelos disponibles
-
-```bash
-curl https://tu-dominio/v1/models
-```
-
 ## Gestión Remota
-
-Sistema de gestión mediante comandos:
 
 ```bash
 # Crear API key
@@ -75,52 +79,6 @@ python remote_manager.py "dame las estadísticas"
 python remote_manager.py "dame la salud del sistema"
 ```
 
-## Estructura
-
-```
-unified-ai-api/
-├── install-ai-gateway.sh    # Script de instalación
-├── remote_manager.py        # Gestión remota
-├── app/
-│   └── api_manager.py       # Gestor de APIs
-├── .env.example             # Plantilla de configuración
-├── docker-compose.yml       # Orquestación Docker
-└── README.md
-```
-
-## Arquitectura
-
-```
-                    ┌─────────────────────┐
-                    │   bak.tecnotactil.com │
-                    │     (Nginx + SSL)     │
-                    └──────────┬────────────┘
-                               │
-                    ┌──────────▼────────────┐
-                    │   Unified AI Gateway   │
-                    │   (Puerto 8080)        │
-                    └──────────┬────────────┘
-                               │
-              ┌────────────────┴────────────────┐
-              │                                  │
-     ┌────────▼────────┐               ┌────────▼────────┐
-     │   Ollama        │               │   DeepSeek      │
-     │   Qwen 2.5 7B   │               │   (Fallback)    │
-     │   (Local)       │               │                 │
-     └─────────────────┘               └─────────────────┘
-```
-
-## Servicios
-
-| Servicio | Puerto | Descripción |
-|----------|--------|-------------|
-| API Gateway | 8080 | Endpoint principal |
-| Manager | 8081 | Gestión remota |
-
 ## Licencia
 
 MIT
-
-## Autor
-
-[tecnotactil-ia](https://github.com/tecnotactil-ia)
